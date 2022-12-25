@@ -1,0 +1,9 @@
+internet Vodafone phone amount
+internet Orange	phone amount
+internet We phone amount
+mobile Vodafone phone amount
+mobile Orange phone amount
+mobile We phone amount
+donations Fawry amount
+donations Aman amount
+landline we home reciept amount
