@@ -31,6 +31,24 @@ public class choose_payment_method {
 		}
 		reciept.getOrderDetails().setServiceePrice(pm.performpay());
 	};
-	
+public choose_payment_method(BaseReciept reciept,Client client,String PaymentMethod ) {
+		
+		
+		payment_method pm = null;
+		
+		if(PaymentMethod.equals("Cash"))
+		{
+			pm = new pay_cash(reciept, client);
+		}
+		else if(PaymentMethod.equals("Card"))
+		{
+			pm = new pay_with_card(reciept, client);
+		}
+		else if(PaymentMethod.equals("Wallet"))
+		{
+			pm = new pay_with_wallet(reciept,client);
+		}
+		reciept.getOrderDetails().setServiceePrice(pm.performpay());
+	};
 
 }

@@ -1,6 +1,9 @@
 package com.fci.sw.FawrySpring.appController;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,10 +16,17 @@ import controllers.Admin;
 import controllers.Client;
 import controllers.User;
 import model.Response;
+import payment.Order;
+import payment.Receipt;
+import payment.choose_payment_method;
+import service_providers.Service_provider;
+import services.ClientCreator;
+import services.Services;
+
 
 @RestController
 public class MyAppController {
-	
+	 Client c;
 	@GetMapping("/login")
 	public Response<User> login(@RequestParam("email") String email, @RequestParam("password") String password) {
 		Login login = new Login(email, password);
@@ -27,7 +37,7 @@ public class MyAppController {
 	    	 res.setStatus(true);
 	    	 res.setMessage("Login successfully");
 	    	 if(user.getType().equals("client")) {
-	    		 Client c = (Client) user;
+	    		 c = (Client) user;
 		    	 System.out.println(c.toString());
 	    	 }
 	    	 else {
@@ -42,7 +52,6 @@ public class MyAppController {
 	     }
 		return res;
 	}
-	
 	@GetMapping("/register")
 	public Response register(@RequestParam("email") String email, @RequestParam("password") String password, @RequestParam("username") String username) throws IOException {
 	    Register r=new Register(email,password,username);
@@ -59,5 +68,69 @@ public class MyAppController {
 		return res;
 		
 	}
-	
+	@GetMapping("/search")
+	public  Response<String> search(@RequestParam("choose_Service")String service_name) {
+		List<String> servicesList = new ArrayList<>();
+		 Response<String> res = new Response<String>();
+		servicesList.add("mobile recharge");
+		servicesList.add("internet payment");
+		servicesList.add("landline");
+		servicesList.add("donations");
+		
+		System.out.print("Search on: ");
+	    String search = service_name;
+	    search = search.toLowerCase();
+	    boolean foundResult = false;
+	    for(String i: servicesList){
+	    	if(i.contains(search)) {
+	    		foundResult = true;
+	    		res.setMessage("serach found sucssefully");
+	    		res.object=i;
+	    		res.setStatus(true);
+	    	}
+	    	
+	    }
+	   
+	    if(!foundResult) { 
+	    	res.setMessage("service not found");
+	    	res.setStatus(false);
+	    
+	    }
+	    
+	   
+		return res;
+		}
+	@GetMapping("/payment")
+	public Response<Order> payment(@RequestParam("Service_name")String payment,@RequestParam("Payment_method")String name,@RequestParam("Cost")String cost) {
+		ClientCreator cc=new ClientCreator();
+	Services services = cc.fawryPayment(payment);
+	 Response<Order> res = new Response<>();
+	 Receipt reciept = null;
+    	try {
+			services.get_Providers();
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	int option2=0;
+    	/*for(Service_provider i : services.getProviders()) {
+    		option2++;
+    		if(i.getName().equals(name)) {	
+    	        break;
+    	        }
+    	}*/
+    	//ArrayList<String> answers = services.getProviders().get(option2-1).get_answer();
+    	Order order = new Order(c.getEmail(),payment.replaceAll("\\s", ""),cost);
+    	reciept = new Receipt(order);
+    	new choose_payment_method(reciept,c,name);
+    	res.setStatus(true);
+    	res.setMessage("payment done sucssefully");
+    	if(!reciept.getOrderDetails().getServiceePrice().equals("NotEnough")) {
+    		c.addOrder(reciept.getOrderDetails());
+    		res.object=reciept.getOrderDetails();
+    		}
+    	else {res.setStatus(false);
+		res.setMessage("Not Enough");}
+    	
+    	return res;}		
 }
