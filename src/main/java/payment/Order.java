@@ -47,6 +47,9 @@ public class Order{
 	}
 	
 	
-
+	public String getorder()
+	{
+		return ("Service Name: "+this.serviceName+"   Service Price: "+this.serviceePrice);
+	}
 
 }
