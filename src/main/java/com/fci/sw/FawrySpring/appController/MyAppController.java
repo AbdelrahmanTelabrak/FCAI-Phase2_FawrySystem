@@ -10,6 +10,7 @@ import java.util.Scanner;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -81,7 +82,7 @@ public class MyAppController {
 		return res;
 		
 	}
-	@GetMapping("/search")
+	@GetMapping("/client/search")
 	public  Response<String> search(@RequestParam("choose_Service")String service_name) {
 		List<String> servicesList = new ArrayList<>();
 		 Response<String> res = new Response<String>();
@@ -113,7 +114,7 @@ public class MyAppController {
 	   
 		return res;
 		}
-	@PostMapping("/payment")
+	@PostMapping("/client/payment")
 	public Response<Order> payment(@RequestParam("Service_name")String payment,@RequestParam("Payment_method")String name,@RequestParam("Cost")String cost) {
 		ClientCreator cc=new ClientCreator();
 		Services services = cc.fawryPayment(payment);
@@ -151,7 +152,7 @@ public class MyAppController {
     	return res;
     }	
 	
-	@GetMapping("/showRefund")
+	@GetMapping("/client/showOrder")
 	public  Response<ArrayList<Order>> ShowOrders(){
 		Response<ArrayList<Order>> res = new Response<>();
 		res.object = c.getOrderlist();
@@ -159,7 +160,7 @@ public class MyAppController {
 		res.setMessage("Show Order sucssefully");
 		return res;
 	}
-	@PostMapping("/makeeRfund")
+	@PostMapping("/client/makeeRfund")
 	public  Response<ArrayList<Order>> makerefund(@RequestParam("NumberofRefund")int NumberofRefund) throws IOException{
 		Response<ArrayList<Order>> res = new Response<>();
 		ArrayList<Order> ordersList =c.getOrderlist();
@@ -178,7 +179,7 @@ public class MyAppController {
 		return res;
 	}
 	
-	@PostMapping("/makediscount")
+	@PostMapping("/admin/makediscount")
 	public Response <HashMap<String, Double>> makediscount(@RequestParam("ServiceName")String ServiceName, @RequestParam("Discount")int discountpersentage)
 	{
 		double discount = discountpersentage/100.0;
@@ -191,7 +192,7 @@ public class MyAppController {
 	}
 	
 	
-	@GetMapping("/gettransactions")
+	@GetMapping("/admin/gettransactions")
 	public Response <ArrayList<String>> gettransactions()
 	{
 		Response <ArrayList<String>> res = new Response<>();
@@ -202,7 +203,7 @@ public class MyAppController {
 	}
 	
 	
-	@PostMapping("/wallet")
+	@PostMapping("/client/wallet")
 	public Response rechargewallet(@RequestParam("amount") int amount)
 	{
 		c.setWalletBalance(c.getWalletBalance()+amount);
@@ -213,7 +214,7 @@ public class MyAppController {
 		return res;
 	}
 	
-	@GetMapping("/refund")
+	@GetMapping("/admin/refund")
 	public Response<ArrayList<String>> showRefundRequests(){
 		Response<ArrayList<String>> res = new Response<>();
 		refunds=new ArrayList<String>();
@@ -238,7 +239,7 @@ public class MyAppController {
 		return res;
 	}
 	
-	@PostMapping("/refund/review")
+	@PutMapping("/admin/refund/review")
 	public Response<String> reviewRefund(@RequestParam("Request num") int index, @RequestParam("State") String state){
 		Response<String> res = new Response<>();
 		
@@ -254,6 +255,15 @@ public class MyAppController {
 		res.setMessage("Request reviewed successfully.");
 		res.object = arr1[0]+" "+arr1[1]+" "+arr1[2]+" "+state;
 		return res;
-    	
+
+	}
+	@GetMapping("/client/showDiscountList")
+	public Response<HashMap<String, Double>> showDiscounts(){
+		Response<HashMap<String, Double>> res = new Response<>(); ;
+		res.object=discountsList.getDiscountList();
+		res.setStatus(true);
+		res.setMessage("Show Discount List successfully");
+		return res;
+		
 	}
 }

@@ -20,3 +20,4 @@ user1@gmail.com mobileRecharge 100 accepted
 user1@gmail.com InternetPayment 50 rejected
 user1@gmail.com mobileRecharge 50 accepted
 user1@gmail.com internetpayment 300 accepted
+user1@gmail.com internetpayment 200 accepted
