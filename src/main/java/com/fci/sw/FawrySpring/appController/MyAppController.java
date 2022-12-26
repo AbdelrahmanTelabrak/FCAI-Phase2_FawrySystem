@@ -1,10 +1,12 @@
 package com.fci.sw.FawrySpring.appController;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Scanner;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -31,8 +33,12 @@ import services.Services;
 @RestController
 public class MyAppController {
 	 Client c;
+	 Admin a;
+	 RefundFile rf=new RefundFile();
+	 
 	 DiscountList discountsList = DiscountList.getInstance();
 	 ArrayList<String> transactions = new ArrayList<String>();
+	 ArrayList<String> refunds=new ArrayList<String>();
 	@GetMapping("/login")
 	public Response<User> login(@RequestParam("email") String email, @RequestParam("password") String password) {
 		Login login = new Login(email, password);
@@ -47,7 +53,8 @@ public class MyAppController {
 		    	 System.out.println(c.toString());
 	    	 }
 	    	 else {
-	    		 Admin a = (Admin) user;
+	    		 a = (Admin) user;
+	    		 a.AcceptRefund(rf);
 	    		 System.out.println(a.toString());
 		    	 	    	 
 	    	 }
@@ -158,7 +165,7 @@ public class MyAppController {
 		ArrayList<Order> ordersList =c.getOrderlist();
 		if(ordersList.size()>0) {
 			RefundFile r =new RefundFile();
-			transactions.add("Refund : "+ordersList.get(NumberofRefund-1).getEmail()+" "+ordersList.get(NumberofRefund-1).getServiceName()+" "+ordersList.get(NumberofRefund-1).getServiceePrice()+" Pending");
+			transactions.add(c.getEmail()+" Refund : "+ordersList.get(NumberofRefund-1).getEmail()+" "+ordersList.get(NumberofRefund-1).getServiceName()+" "+ordersList.get(NumberofRefund-1).getServiceePrice()+" Pending");
 	    	r.changeInFile(ordersList.get(NumberofRefund-1));
 	    	c.getOrderlist().remove(NumberofRefund-1);
 	    	res.object = c.getOrderlist();
@@ -203,7 +210,51 @@ public class MyAppController {
 		Response res = new Response<>();
 		res.setStatus(true);
 		res.setMessage("Recharge Successfully, Your wallet balance : " + c.getWalletBalance());
-		transactions.add("Recharge wallet : " + amount);
+		transactions.add(c.getEmail()+" Recharge wallet : " + amount);
 		return res;
+	}
+	
+	@GetMapping("/refund")
+	public Response<ArrayList<String>> showRefundRequests(){
+		Response<ArrayList<String>> res = new Response<>();
+		refunds=new ArrayList<String>();
+		 
+		try {
+		      File myObj = new File("RefundRequest.txt");
+		      Scanner myReader = new Scanner(myObj);
+		     
+		      while (myReader.hasNextLine()) {
+		        String data = myReader.nextLine();
+		        refunds.add(data);
+		    		    }
+		      myReader.close();
+		      
+		    } catch (FileNotFoundException e) {
+		      System.out.println("An error occurred.");
+		      e.printStackTrace();
+		    }
+		res.object = refunds;
+		res.setStatus(true);
+		res.setMessage("Refund Requests: ");
+		return res;
+	}
+	
+	@PostMapping("/refund/review")
+	public Response<String> reviewRefund(@RequestParam("Request num") int index, @RequestParam("State") String state){
+		Response<String> res = new Response<>();
+		
+		String arr1[]=refunds.get(index-1).split("\\s");
+		try {
+			a.setSate(refunds.get(index-1), state);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		res.setStatus(true);
+		res.setMessage("Request reviewed successfully.");
+		res.object = arr1[0]+" "+arr1[1]+" "+arr1[2]+" "+state;
+		return res;
+    	
 	}
 }

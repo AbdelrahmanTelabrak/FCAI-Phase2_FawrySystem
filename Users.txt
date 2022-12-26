@@ -2,7 +2,7 @@ admin1@gmail.com admin 12345678 admin1 001
 user2@gmail.com client 12345678 user2 320.00
 user3@gmail.com client 12345678 user3 320.00
 admin2@gmail.com admin 12345678 admin2 002
-user1@gmail.com client 12345678 user1 650.0
 user5@gmail.com client 12345678 user5 0.0
 user6@gmail.com client 12345678 user6 0.0
 Dada22@gmail.com client 12345678 Dada22 0.0
+user1@gmail.com client 12345678 user1 950.0
