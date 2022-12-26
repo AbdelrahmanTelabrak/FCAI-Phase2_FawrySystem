@@ -15,6 +15,7 @@ import authentication.Login;
 import authentication.Register;
 import controllers.Admin;
 import controllers.Client;
+import controllers.RefundFile;
 import controllers.User;
 import model.Response;
 import payment.Order;
@@ -138,12 +139,31 @@ public class MyAppController {
     	return res;
     }	
 	
-	@GetMapping("/refund")
-	public  Response<ArrayList<Order>> ShowOrder(){
+	@GetMapping("/showRefund")
+	public  Response<ArrayList<Order>> ShowOrders(){
 		Response<ArrayList<Order>> res = new Response<>();
 		res.object = c.getOrderlist();
 		res.setStatus(true);
 		res.setMessage("Show Order sucssefully");
 		return res;
 	}
+	@PostMapping("/makeeRfund")
+	public  Response<ArrayList<Order>> makerefund(@RequestParam("NumberofRefund")int NumberofRefund) throws IOException{
+		Response<ArrayList<Order>> res = new Response<>();
+		ArrayList<Order> ordersList =c.getOrderlist();
+		if(ordersList.size()>0) {
+			RefundFile r =new RefundFile();
+	    	r.changeInFile(ordersList.get(NumberofRefund-1));
+	    	c.getOrderlist().remove(NumberofRefund-1);
+	    	res.object = c.getOrderlist();
+			res.setStatus(true);
+			res.setMessage("make refund order done sucssefully");
+		}else {
+			res.setStatus(false);
+			res.setMessage("Not Found Oeders");
+		}
+		
+		return res;
+	}
+	
 }
