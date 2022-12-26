@@ -3,6 +3,7 @@ package com.fci.sw.FawrySpring.appController;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,6 +19,7 @@ import controllers.Client;
 import controllers.RefundFile;
 import controllers.User;
 import model.Response;
+import payment.DiscountList;
 import payment.Order;
 import payment.Receipt;
 import payment.choose_payment_method;
@@ -29,6 +31,8 @@ import services.Services;
 @RestController
 public class MyAppController {
 	 Client c;
+	 DiscountList discountsList = DiscountList.getInstance();
+	 ArrayList<String> transactions = new ArrayList<String>();
 	@GetMapping("/login")
 	public Response<User> login(@RequestParam("email") String email, @RequestParam("password") String password) {
 		Login login = new Login(email, password);
@@ -123,6 +127,7 @@ public class MyAppController {
     	}*/
     	//ArrayList<String> answers = services.getProviders().get(option2-1).get_answer();
     	Order order = new Order(c.getEmail(),payment.replaceAll("\\s", ""),cost);
+    	transactions.add(order.getorder());
     	reciept = new Receipt(order);
     	new choose_payment_method(reciept,c,name);
     	res.setStatus(true);
@@ -153,6 +158,7 @@ public class MyAppController {
 		ArrayList<Order> ordersList =c.getOrderlist();
 		if(ordersList.size()>0) {
 			RefundFile r =new RefundFile();
+			transactions.add("Refund : "+ordersList.get(NumberofRefund-1).getEmail()+" "+ordersList.get(NumberofRefund-1).getServiceName()+" "+ordersList.get(NumberofRefund-1).getServiceePrice()+" Pending");
 	    	r.changeInFile(ordersList.get(NumberofRefund-1));
 	    	c.getOrderlist().remove(NumberofRefund-1);
 	    	res.object = c.getOrderlist();
@@ -165,4 +171,38 @@ public class MyAppController {
 		return res;
 	}
 	
+	@PostMapping("/makediscount")
+	public Response <HashMap<String, Double>> makediscount(@RequestParam("ServiceName")String ServiceName, @RequestParam("Discount")int discountpersentage)
+	{
+		double discount = discountpersentage/100.0;
+		discountsList.addDiscount(ServiceName, discount);
+		Response <HashMap<String, Double>> res = new Response<>();
+		res.setStatus(true);
+		res.setMessage("Add discount successfully");
+		res.object = discountsList.getDiscountList();
+		return res;
+	}
+	
+	
+	@GetMapping("/gettransactions")
+	public Response <ArrayList<String>> gettransactions()
+	{
+		Response <ArrayList<String>> res = new Response<>();
+		res.setMessage("All Transactions : ");
+		res.setStatus(true);
+		res.object = transactions;
+		return res;
+	}
+	
+	
+	@PostMapping("/wallet")
+	public Response rechargewallet(@RequestParam("amount") int amount)
+	{
+		c.setWalletBalance(c.getWalletBalance()+amount);
+		Response res = new Response<>();
+		res.setStatus(true);
+		res.setMessage("Recharge Successfully, Your wallet balance : " + c.getWalletBalance());
+		transactions.add("Recharge wallet : " + amount);
+		return res;
+	}
 }
