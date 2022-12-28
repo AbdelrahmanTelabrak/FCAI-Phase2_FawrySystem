@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Scanner;
+import java.util.UUID;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import authentication.Login;
+import authentication.OnlineUsers;
 import authentication.Register;
 import controllers.Admin;
 import controllers.Client;
@@ -40,25 +42,28 @@ public class MyAppController {
 //	 DiscountList discountsList = DiscountList.getInstance();
 //	 ArrayList<String> transactions = new ArrayList<String>();
 //	 ArrayList<String> refunds = new ArrayList<String>();
+	 
+	 OnlineUsers onlineUsers = OnlineUsers.getInstance();
+	 
 	@GetMapping("/login")
 	public Response<User> login(@RequestParam("email") String email, @RequestParam("password") String password) {
 		Login login = new Login(email, password);
 		Response<User> res = new Response<>();
 		if(login.verify()) {
 	    	 User user = login.userLogin();
+	    	 String uniqueID = UUID.randomUUID().toString();
 	    	 res.object = user;
 	    	 res.setStatus(true);
-	    	 res.setMessage("Login successfully");
+	    	 res.setMessage("Login successfully \n Please copy your id: "+uniqueID);
 	    	 if(user.getType().equals("client")) {
 	    		 c = (Client) user;
+		    	 onlineUsers.addUser(uniqueID, c);
 		    	 System.out.println(c.toString());
-		    	 new ClientController(c);
 	    	 }
 	    	 else {
 	    		 a = (Admin) user;
-	    		 
+		    	 onlineUsers.addUser(uniqueID, a);
 	    		 System.out.println(a.toString());
-	    		 new AdminController(a);    	 
 	    	 }
 	    	 
 	     }else {

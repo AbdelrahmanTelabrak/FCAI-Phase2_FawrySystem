@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import authentication.OnlineUsers;
 import controllers.Client;
 import controllers.RefundFile;
 import model.Response;
@@ -28,14 +29,15 @@ public class ClientController {
 	Client c;
 	Transactions transactions=Transactions.getInstance();
 	DiscountList discountsList = DiscountList.getInstance();
-	ClientController(Client c){
-		this.c=c;
-	}
+	OnlineUsers onlineUsers = OnlineUsers.getInstance();
+//	ClientController(Client c){
+//		this.c=c;
+//	}
 	
 	@GetMapping("/search")
-	public  Response<String> search(@RequestParam("choose_Service")String service_name) {
+	public  Response<String> search(@RequestParam("choose_Service")String service_name, @RequestParam("Id")String id) {
 		List<String> servicesList = new ArrayList<>();
-		 Response<String> res = new Response<String>();
+		Response<String> res = new Response<String>();
 		servicesList.add("mobile recharge");
 		servicesList.add("internet payment");
 		servicesList.add("landline");
@@ -65,10 +67,19 @@ public class ClientController {
 		return res;
 		}
 	@PostMapping("/payment")
-	public Response<Order> payment(@RequestParam("Service_name")String payment,@RequestParam("Payment_method")String name,@RequestParam("Cost")String cost) {
+	public Response<Order> payment(@RequestParam("Service_name")String payment,@RequestParam("Payment_method")String name,
+			@RequestParam("Cost")String cost, @RequestParam("Id")String id) {
+		
+		Response<Order> res = new Response<>();
+		if(!onlineUsers.getUsersList().containsKey(id)  || !onlineUsers.getUsersList().get(id).getType().equals("client")) {
+			res.setStatus(false);
+			res.setMessage("This Id is not correct");
+			return res;
+		}
+		Client client = (Client) onlineUsers.getUsersList().get(id);
+		System.out.println(client.toString());
 		ClientCreator cc=new ClientCreator();
 		Services services = cc.fawryPayment(payment);
-		Response<Order> res = new Response<>();
 		Receipt reciept = null;
     	try {
 			services.get_Providers();
@@ -84,15 +95,14 @@ public class ClientController {
     	        }
     	}*/
     	//ArrayList<String> answers = services.getProviders().get(option2-1).get_answer();
-    	Order order = new Order(c.getEmail(),payment.replaceAll("\\s", ""),cost);
+    	Order order = new Order(client.getEmail(),payment.replaceAll("\\s", ""),cost);
     	Transactions.setTransactions(order.getorder());
-    	c.addOrder(order);                         //<==
     	reciept = new Receipt(order);
-    	new choose_payment_method(reciept,c,name);
+    	new choose_payment_method(reciept,client,name);
     	res.setStatus(true);
     	res.setMessage("payment done sucssefully");
     	if(!reciept.getOrderDetails().getServiceePrice().equals("NotEnough")) {
-    		c.addOrder(reciept.getOrderDetails());
+    		client.addOrder(reciept.getOrderDetails());
     		res.object=reciept.getOrderDetails();
     	}
     	else {
@@ -104,23 +114,35 @@ public class ClientController {
     }	
 	
 	@GetMapping("/showOrder")
-	public  Response<ArrayList<Order>> ShowOrders(){
+	public  Response<ArrayList<Order>> ShowOrders(@RequestParam("Id")String id){
 		Response<ArrayList<Order>> res = new Response<>();
-		res.object = c.getOrderlist();
+		if(!onlineUsers.getUsersList().containsKey(id) || !onlineUsers.getUsersList().get(id).getType().equals("client")) {
+			res.setStatus(false);
+			res.setMessage("Not Authorized");
+			return res;
+		}
+		Client client = (Client) onlineUsers.getUsersList().get(id);
+		res.object = client.getOrderlist();
 		res.setStatus(true);
 		res.setMessage("Show Order sucssefully");
 		return res;
 	}
 	@PostMapping("/makeeRfund")
-	public  Response<ArrayList<Order>> makerefund(@RequestParam("NumberofRefund")int NumberofRefund) throws IOException{
+	public  Response<ArrayList<Order>> makerefund(@RequestParam("NumberofRefund")int NumberofRefund, @RequestParam("Id")String id) throws IOException{
 		Response<ArrayList<Order>> res = new Response<>();
-		ArrayList<Order> ordersList =c.getOrderlist();
+		if(!onlineUsers.getUsersList().containsKey(id) || !onlineUsers.getUsersList().get(id).getType().equals("client")) {
+			res.setStatus(false);
+			res.setMessage("Not Authorized");
+			return res;
+		}
+		Client client = (Client) onlineUsers.getUsersList().get(id);
+		ArrayList<Order> ordersList =client.getOrderlist();
 		if(ordersList.size()>0) {
 			RefundFile r =new RefundFile();
-			Transactions.setTransactions(c.getEmail()+" Refund : "+ordersList.get(NumberofRefund-1).getEmail()+" "+ordersList.get(NumberofRefund-1).getServiceName()+" "+ordersList.get(NumberofRefund-1).getServiceePrice()+" Pending");
+			Transactions.setTransactions(client.getEmail()+" Refund : "+ordersList.get(NumberofRefund-1).getEmail()+" "+ordersList.get(NumberofRefund-1).getServiceName()+" "+ordersList.get(NumberofRefund-1).getServiceePrice()+" Pending");
 	    	r.changeInFile(ordersList.get(NumberofRefund-1));
-	    	c.getOrderlist().remove(NumberofRefund-1);
-	    	res.object = c.getOrderlist();
+	    	client.getOrderlist().remove(NumberofRefund-1);
+	    	res.object = client.getOrderlist();
 			res.setStatus(true);
 			res.setMessage("make refund order done sucssefully");
 		}else {
@@ -130,12 +152,18 @@ public class ClientController {
 		return res;
 	}
 	@PostMapping("/wallet")
-	public Response rechargewallet(@RequestParam("amount") int amount)
+	public Response rechargewallet(@RequestParam("amount") int amount, @RequestParam("Id")String id)
 	{
-		c.setWalletBalance(c.getWalletBalance()+amount);
 		Response res = new Response<>();
+		if(!onlineUsers.getUsersList().containsKey(id) || !onlineUsers.getUsersList().get(id).getType().equals("client")) {
+			res.setStatus(false);
+			res.setMessage("Not Authorized");
+			return res;
+		}
+		Client client = (Client) onlineUsers.getUsersList().get(id);
+		client.setWalletBalance(client.getWalletBalance()+amount);
 		res.setStatus(true);
-		res.setMessage("Recharge Successfully, Your wallet balance : " + c.getWalletBalance());
+		res.setMessage("Recharge Successfully, Your wallet balance : " + client.getWalletBalance());
 		Transactions.setTransactions(c.getEmail()+" Recharge wallet : " + amount);
 		return res;
 	}
