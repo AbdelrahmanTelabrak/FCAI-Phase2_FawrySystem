@@ -160,7 +160,7 @@ public class ClientController {
 		client.setWalletBalance(client.getWalletBalance()+amount);
 		res.setStatus(true);
 		res.setMessage("Recharge Successfully, Your wallet balance : " + client.getWalletBalance());
-		Transactions.setTransactions(c.getEmail()+" Recharge wallet : " + amount);
+		Transactions.setTransactions(client.getEmail()+" Recharge wallet : " + amount);
 		return res;
 	}
 	@GetMapping("/showDiscountList")
