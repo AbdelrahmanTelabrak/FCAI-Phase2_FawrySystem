@@ -30,10 +30,6 @@ public class ClientController {
 	Transactions transactions=Transactions.getInstance();
 	DiscountList discountsList = DiscountList.getInstance();
 	OnlineUsers onlineUsers = OnlineUsers.getInstance();
-//	ClientController(Client c){
-//		this.c=c;
-//	}
-	
 	@GetMapping("/search")
 	public  Response<String> search(@RequestParam("choose_Service")String service_name, @RequestParam("Id")String id) {
 		List<String> servicesList = new ArrayList<>();
@@ -65,7 +61,7 @@ public class ClientController {
 	    
 	   
 		return res;
-		}
+	}
 	@PostMapping("/payment")
 	public Response<Order> payment(@RequestParam("Service_name")String payment,@RequestParam("Payment_method")String name,
 			@RequestParam("Cost")String cost, @RequestParam("Id")String id) {
@@ -96,7 +92,7 @@ public class ClientController {
     	}*/
     	//ArrayList<String> answers = services.getProviders().get(option2-1).get_answer();
     	Order order = new Order(client.getEmail(),payment.replaceAll("\\s", ""),cost);
-    	Transactions.setTransactions(order.getorder());
+    	Transactions.setTransactions(client.getEmail()+" "+order.getorder());
     	reciept = new Receipt(order);
     	new choose_payment_method(reciept,client,name);
     	res.setStatus(true);
@@ -127,7 +123,7 @@ public class ClientController {
 		res.setMessage("Show Order sucssefully");
 		return res;
 	}
-	@PostMapping("/makeeRfund")
+	@PostMapping("/makeRefund")
 	public  Response<ArrayList<Order>> makerefund(@RequestParam("NumberofRefund")int NumberofRefund, @RequestParam("Id")String id) throws IOException{
 		Response<ArrayList<Order>> res = new Response<>();
 		if(!onlineUsers.getUsersList().containsKey(id) || !onlineUsers.getUsersList().get(id).getType().equals("client")) {

@@ -24,9 +24,8 @@ public class RefundFile implements Observer{
 		this.State=state;
 		this.email=request;
 		String requestLine[] = request.split("\\s");
-
 		System.out.println(request+" "+state);
-		 ArrayList<String>arr=new ArrayList<String>();
+		ArrayList<String>arr=new ArrayList<String>();
 			try {
 			      File myObj = new File("RefundRequest.txt");
 			      Scanner myReader = new Scanner(myObj);

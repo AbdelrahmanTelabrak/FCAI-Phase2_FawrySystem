@@ -21,5 +21,4 @@ public class DiscountList {
 	public void addDiscount(String serviceName, double discount) {
 		discountList.put(serviceName, discount);
 	}
-
 }

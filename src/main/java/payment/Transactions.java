@@ -21,7 +21,4 @@ public class Transactions {
 		transactions.add(s);
 	}
 	
-	
-	
-	
 }
