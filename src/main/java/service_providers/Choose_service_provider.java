@@ -15,6 +15,4 @@ public class Choose_service_provider {
 		System.out.println(v);
 	
 	}
-	
-
 }
